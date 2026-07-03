@@ -1,0 +1,21 @@
+TEST USER
+HYDERABAD TEST ADDRESS
+Blll Amount  2190
+Unlts Consmed 301
+Biling Days 30
+Net Bill Amnt 2190
+Subsidy 0
+Tariff Domestic LT-I
+Present Rdg 14990
+Avg Units 265
+Recorded HD 1.7
+Energy Charge 1710
+Fixed Charge 120
+Elec Duty 88
+Interest ED 0
+Sur Charge 0
+Adjust 0
+Interest CD 0
+Loss Gain 3
+GIS Subsidy 0
+Mar 2026

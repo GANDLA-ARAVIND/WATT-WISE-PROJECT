@@ -1,0 +1,21 @@
+TEST USER
+HYDERABAD TEST ADDRESS
+Bill Month: Mar 2026
+Billing Days: 30
+Units Consumed: 318
+Bill Amount: 2340
+Net Bill Amount: 2340
+Subsidy: 0
+Tariff: Domestic LT-I
+Present Reading: 15820
+Average Month Units: 280
+Recorded MD: 1.9
+Energy Charges: 1820
+Fixed Charges: 120
+Electricity Duty: 95
+Interest on ED: 0
+Surcharge: 0
+Adjustment: 0
+Interest on CD: 0
+Loss/Gain: 5
+GJS Subsidy: 0

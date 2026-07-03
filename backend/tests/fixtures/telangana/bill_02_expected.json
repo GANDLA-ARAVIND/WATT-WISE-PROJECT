@@ -1,0 +1,20 @@
+{
+  "bill_month": "Mar 2026",
+  "billing_days": 30.0,
+  "units_consumed": 301.0,
+  "bill_amount": 2190.0,
+  "net_bill_amount": 2190.0,
+  "subsidy": 0.0,
+  "meter_reading": 14990.0,
+  "average_month_units": 265.0,
+  "recorded_md": 1.7,
+  "energy_charges": 1710.0,
+  "fixed_charges": 120.0,
+  "electricity_duty": 88.0,
+  "interest_on_ed": 0.0,
+  "surcharge": 0.0,
+  "adjustment": 0.0,
+  "interest_on_cd": 0.0,
+  "gjs_subsidy": 0.0,
+  "tariff_details": "Tariff Domestic LT-I"
+}
