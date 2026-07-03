@@ -12,6 +12,7 @@ dist/
 # local environment files
 .env*.local
 .env
+backend/.env
 
 # logs
 *.log
