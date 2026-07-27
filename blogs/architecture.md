@@ -183,11 +183,38 @@ The first three of the analysis hooks form a waterfall; the two bundle hooks wer
 |---|---|
 | `next.config.mjs` | `reactStrictMode: true` only |
 | `tsconfig.json` | `strict: true`, `moduleResolution: "bundler"`, `@/*` path alias |
-| `tailwind.config.ts` | Dark-first palette: background `#0B0F19`, card `#111827`, primary `#10B981`, secondary `#3B82F6` |
+| `tailwind.config.ts` | Dark-first palette (below) |
 | `.eslintrc.json` | `next/core-web-vitals` |
 | `postcss.config.js` | tailwindcss + autoprefixer |
 
-The Tailwind primary `#10B981` matches the backend's `Cooling` category color exactly — the design system spans both languages.
+### Design tokens
+
+Tailwind theme colors from `tailwind.config.ts`:
+
+| Token | Hex | Use |
+|---|---|---|
+| background | `#0B0F19` | Page background |
+| card | `#111827` | Surfaces |
+| primary | `#10B981` | Accent |
+| secondary | `#3B82F6` | Secondary accent |
+| foreground | `#F9FAFB` | Text |
+| muted | `#9CA3AF` | Secondary text |
+| border | `#1F2937` | Dividers |
+
+Contribution category colors, defined in `backend/services/appliance_category_service.py` and returned in every contribution payload:
+
+| Category | Hex |
+|---|---|
+| Cooling | `#10B981` |
+| Lighting | `#F59E0B` |
+| Always Active | `#3B82F6` |
+| Entertainment | `#8B5CF6` |
+| Utility | `#F97316` |
+| Fallback | `#94A3B8` |
+
+The chart legend colors are therefore server-defined rather than chosen by the frontend, and Tailwind's `primary` is byte-identical to the backend's `Cooling` — the design system spans both languages.
+
+**Icons** come entirely from `lucide-react` 0.468.0; there are no custom icon assets in the codebase. Navigation uses `Home`, `FileText`, `LineChart`, `Lightbulb`, `Bot` and `Settings` (`lib/navigation.ts`); `Loader2` backs every loading state.
 
 ---
 

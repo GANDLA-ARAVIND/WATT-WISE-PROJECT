@@ -26,10 +26,10 @@ blogs/
 │
 └── assets/
     ├── diagrams/                     # 12 Mermaid architecture diagram files
-    ├── flowcharts/                   # 16 Mermaid flowchart files
-    ├── screenshots/                  # UI captures (placeholders marked in Part 1)
-    └── icons/                        # icon assets
+    └── flowcharts/                   # 16 Mermaid flowchart files
 ```
+
+Every visual is a Mermaid diagram rendered from source. There are no image files, no external assets, and nothing left to supply by hand — the tree is complete as committed.
 
 ---
 
@@ -50,33 +50,11 @@ blogs/
 
 **GitHub** — renders everything natively, including all Mermaid diagrams. No build step.
 
-**LinkedIn Articles** — paste an article's markdown directly. LinkedIn does not render Mermaid, so replace diagram blocks with exported PNGs (see below) and confirm that relative links are rewritten to absolute URLs.
-
-**Medium / Hashnode** — Hashnode renders Mermaid; Medium does not. Both handle the tables, code blocks and headings without modification.
+**Hashnode** — renders Mermaid natively. Paste and publish.
 
 **Portfolio sites** — every file is standard GitHub-flavored Markdown with relative links. Any static site generator that resolves relative paths (Next.js MDX, Astro, Docusaurus, VitePress) will render the tree as-is.
 
-### Exporting diagrams to images
-
-```bash
-npm install -g @mermaid-js/mermaid-cli
-mmdc -i assets/diagrams/overall-system-architecture.md -o out/overall-system-architecture.png
-```
-
----
-
-## Screenshot Placeholders
-
-Part 1 marks six screenshot slots with `📷` callouts. Drop the images into `assets/screenshots/` using these filenames and the references will resolve:
-
-| Placeholder | Expected file |
-|---|---|
-| Dashboard | `assets/screenshots/dashboard.png` |
-| Upload flow | `assets/screenshots/upload-flow.png` |
-| Analytics dashboard | `assets/screenshots/analytics.png` |
-| Predictions | `assets/screenshots/predictions.png` |
-| Assistant chat | `assets/screenshots/assistant.png` |
-| Architecture (optional rendered diagram) | `assets/screenshots/architecture.png` |
+**LinkedIn Articles / Medium** — neither renders Mermaid, so diagram blocks show as code. The prose, tables, code samples and folder trees carry the argument on their own, so an article still reads correctly there. Rewrite relative links to absolute GitHub URLs before pasting.
 
 ---
 

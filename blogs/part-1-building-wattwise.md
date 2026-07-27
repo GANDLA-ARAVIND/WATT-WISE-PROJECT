@@ -36,7 +36,37 @@ The utility cannot produce that sentence, because it does not know how many peop
 
 > **The core product bet:** an honest estimate delivered today beats a precise measurement that requires hardware you will never buy.
 
-📷 *Dashboard Screenshot — insert `./assets/screenshots/dashboard.png`*
+```mermaid
+graph LR
+  subgraph Bill["What the bill tells you"]
+    B1["units consumed: 318"]
+    B2["bill amount: 2340"]
+    B3["energy charges, duty,<br/>surcharge, subsidy"]
+  end
+
+  subgraph Gap["The interpretation gap"]
+    G1["Why did it change?"]
+    G2["What drove it?"]
+    G3["What happens next month?"]
+    G4["What should I do?"]
+  end
+
+  subgraph WattWise["What WattWise adds"]
+    W1["household profile:<br/>5 fields + appliance counts"]
+    W2["seasonal model"]
+    W3["behavioral attribution"]
+    W4["forecast + recommendations"]
+  end
+
+  B1 --> G1
+  B2 --> G1
+  B3 --> G2
+  W1 --> W2 --> W3 --> W4
+  W3 -.->|answers| G2
+  W2 -.->|answers| G1
+  W4 -.->|answers| G3
+  W4 -.->|answers| G4
+```
 
 ---
 
@@ -122,7 +152,23 @@ That is a deliberately hostile-sounding choice, and it exists because of a hard 
 
 The escape hatch survives: `isOnboardingGateResolved` returns true if `onboarding_skipped_at` is set, so a determined user can still get through, and the app then shows setup prompts instead of analysis.
 
-📷 *Upload Flow — insert `./assets/screenshots/upload-flow.png`*
+The gate exists because of a hard dependency chain — every card on the dashboard traces back to five profile fields and one appliance row:
+
+```mermaid
+graph LR
+  P["family_members<br/>room_count<br/>house_type"] --> M["household modifiers<br/>occupancy / room spread / house type"]
+  A["appliance rows<br/>with quantity > 0"] --> S["raw_score per appliance"]
+  M --> S
+  S --> C{"total score > 0?"}
+  C -- no --> X["mode: insufficient_appliance_context<br/>contributions = empty"]
+  C -- yes --> R["category + appliance contributions"]
+  R --> D1["contribution pie"]
+  R --> D2["lead category"]
+  D2 --> D3["recommendations"]
+  D2 --> D4["energy score"]
+  R --> D5["prediction appliance forecast"]
+  X --> E["every one of those cards renders empty"]
+```
 
 ---
 
@@ -244,7 +290,26 @@ The behavior worth calling out is the **debounced re-parse loop**. Every edit to
 
 Two more debounced effects run alongside it, at 500 ms and 650 ms, hitting the seasonal and behavioral analysis endpoints so the user can see a live preview of what their corrections will produce *before* saving. This is the feature that makes correction feel like exploration rather than data entry.
 
-📷 *Analytics Dashboard — insert `./assets/screenshots/analytics.png`*
+Three independent debounce timers fire off a single keystroke, each guarded by its own precondition:
+
+```mermaid
+graph TD
+  K["user edits a form field"] --> S1["signature check:<br/>createManualSignature(buildManualFields())"]
+  S1 --> Q{"signature changed?"}
+  Q -- no --> N["no work"]
+  Q -- yes --> T1["700 ms debounce"]
+  T1 --> P1["POST /api/bills/parse<br/>silent re-parse with manual_fields"]
+  P1 --> R1["uncertainty markers clear<br/>as fields are corrected"]
+
+  K --> G{"bill_month, units_consumed<br/>and bill_amount all present?"}
+  G -- no --> CL["clear both previews"]
+  G -- yes --> T2["500 ms debounce"]
+  G -- yes --> T3["650 ms debounce"]
+  T2 --> P2["POST /api/seasonal/analyze"]
+  P2 --> R2["season card, insights,<br/>priority appliances"]
+  T3 --> P3["POST /api/behavioral/analyze<br/>carries seasonal_assumptions"]
+  P3 --> R3["contribution pie + appliance list"]
+```
 
 ### Seasonal intelligence
 
@@ -284,7 +349,24 @@ Four sources of spread, and the widest wins: proportional volatility, the standa
 
 Confidence is graded separately from the band: **High** requires ≥ 5 bills, ≥ 2 same-season bills, and a range width ≤ 20% of center. **Medium** requires ≥ 2 bills. Everything else is **Low**, with the reason string surfaced directly in the UI badge.
 
-📷 *Predictions — insert `./assets/screenshots/predictions.png`*
+```mermaid
+graph LR
+  subgraph Sources["Four candidate spreads"]
+    S1["abs(center) x volatility<br/>0.09 units / 0.10 amount"]
+    S2["std of the series x 0.55"]
+    S3["std of month-over-month diffs x 0.8"]
+    S4["absolute floor: 2.0"]
+  end
+  S1 --> M["max() — widest wins"]
+  S2 --> M
+  S3 --> M
+  S4 --> M
+  M --> B["min = max(0, center - spread)<br/>max = center + spread"]
+  B --> W{"range width / center"}
+  W -->|"at most 0.2, with 5+ bills and 2+ in season"| H["High confidence"]
+  W -->|"2+ bills"| MD["Medium confidence"]
+  W -->|"otherwise"| L["Low confidence"]
+```
 
 ### Recommendations
 
@@ -307,9 +389,7 @@ Best next moves:
 - <up to 3 action bullets>
 ```
 
-Every conversation is persisted with a `grounding_metadata` object recording the season, lead category, energy score grade and bill count that produced it. The result is an assistant that cannot hallucinate a number, because it has no generative capacity — every figure in every answer is read from a computed context. The cost is brittleness: an unanticipated phrasing falls through to `explain_general`.
-
-📷 *Assistant Chat — insert `./assets/screenshots/assistant.png`*
+Every conversation is persisted with a `grounding_metadata` object recording the season, lead category, energy score grade and bill count that produced it. The result is an assistant that cannot hallucinate a number, because it has no generative capacity — every figure in every answer is read from a computed context. The cost is brittleness: an unanticipated phrasing falls through to `explain_general`. Full intent routing is in [assistant-workflow](./assets/diagrams/assistant-workflow.md).
 
 ---
 
