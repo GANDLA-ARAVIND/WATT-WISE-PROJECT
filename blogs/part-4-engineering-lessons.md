@@ -330,7 +330,7 @@ That distinction matters more than it sounds. The double median filter in the OC
 
 **No CI, with a real test suite sitting there.** Eight test files, including a genuinely well-designed fixture-driven parser regression suite. Nothing runs them automatically. Tests that do not run on every push are documentation with a `.py` extension.
 
-**`main.py` at 1,119 lines.** It holds routes, ten Pydantic models, the entire OCR pipeline, type coercion helpers, auth extraction and six orchestration functions. The OCR functions in particular have nothing to do with routing and belong in `services/ocr_service.py`. The service layer got decomposed beautifully into 31 modules; the entry point never did.
+**`main.py` at 1,119 lines.** It holds routes, twelve Pydantic models, the entire OCR pipeline, type coercion helpers, auth extraction and six orchestration functions. The OCR functions in particular have nothing to do with routing and belong in `services/ocr_service.py`. The service layer got decomposed beautifully into 35 modules; the entry point never did.
 
 **`bill_month` stored as text.** Every chronological operation — sorting, seasonal grouping, duplicate detection, month-over-month comparison — parses a string. Two implementations of that parsing exist (Python and TypeScript). A `date` column would delete both and let Postgres do the work.
 

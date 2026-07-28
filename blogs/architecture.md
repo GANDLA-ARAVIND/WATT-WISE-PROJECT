@@ -42,7 +42,7 @@ graph TB
   subgraph FastAPI["FastAPI service"]
     ROUTES["main.py"]
     OCR["OCR pipeline"]
-    SERVICES["services/ (31 modules)"]
+    SERVICES["services/ (35 modules)"]
   end
   subgraph Supabase
     SBAUTH["Auth"]
@@ -235,7 +235,7 @@ graph TD
 
 ### Module inventory
 
-See the [full folder tree in Part 2](./part-2-fastapi-backend.md#folder-organization). Summary: `main.py` (1,119 lines) plus 31 service modules organized into six domains — parsing, seasonal, behavioral, recommendation, prediction, assistant — plus `bill_chronology.py` shared across several.
+See the [full folder tree in Part 2](./part-2-fastapi-backend.md#folder-organization). Summary: `main.py` (1,119 lines) plus 35 service modules organized into six domains — parsing, seasonal, behavioral, recommendation, prediction, assistant — plus `bill_chronology.py` shared across several.
 
 ### Cross-cutting concerns
 

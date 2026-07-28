@@ -117,9 +117,9 @@ backend/
 
 The shape here is worth defending, because it violates a convention. There are no `routers/`, `schemas/`, `dependencies/` or `repositories/` packages — the FastAPI cookiecutter layout. Instead there is one large `main.py` and a wide, flat `services/` directory of small modules.
 
-**The reasoning:** the complexity in this system is not in HTTP handling, it is in domain logic. There are 14 routes and 31 service modules. Splitting 14 routes across five router files would create five files averaging under 30 lines, each importing the same auth helper and the same Supabase client, in exchange for a deeper import graph. The domain modules are where the interesting decomposition lives, and that is where the decomposition went.
+**The reasoning:** the complexity in this system is not in HTTP handling, it is in domain logic. There are 15 routes and 35 service modules. Splitting 15 routes across five router files would create five files averaging under 30 lines, each importing the same auth helper and the same Supabase client, in exchange for a deeper import graph. The domain modules are where the interesting decomposition lives, and that is where the decomposition went.
 
-**The honest counterpoint:** `main.py` at 1,119 lines is past the point where a newcomer can hold it in their head. It contains route definitions, ten Pydantic models, the entire OCR pipeline (five functions), type coercion helpers, auth extraction, and six orchestration functions that are really services in disguise. The OCR functions in particular (`preprocess_image`, `ocr_text_and_confidence`, `extract_text_from_pdf`, `extract_text_from_image`) have no business being in a routing module and should be `services/ocr_service.py`. Same for `persist_bill_record` and `build_energy_assistant_reply`, which are orchestration, not routing.
+**The honest counterpoint:** `main.py` at 1,119 lines is past the point where a newcomer can hold it in their head. It contains route definitions, twelve Pydantic models, the entire OCR pipeline (five functions), type coercion helpers, auth extraction, and six orchestration functions that are really services in disguise. The OCR functions in particular (`preprocess_image`, `ocr_text_and_confidence`, `extract_text_from_pdf`, `extract_text_from_image`) have no business being in a routing module and should be `services/ocr_service.py`. Same for `persist_bill_record` and `build_energy_assistant_reply`, which are orchestration, not routing.
 
 ---
 
@@ -257,7 +257,7 @@ Validation is not one function; it happens at three distinct stages with three d
 
 **Stage 1 — Pydantic, at the HTTP boundary.** Is this well-formed JSON with the right shapes? Failures produce FastAPI's standard 422.
 
-**Stage 2 — `normalize_manual_fields`, at the type boundary.** User input arrives as strings. This function coerces by field class: `INTEGER_FIELDS` (currently just `billing_days`) go through `int(float(value))`; `NUMERIC_FIELDS` (16 of them) go through `float(value)`; `bill_month` goes through `normalize_month_value`; everything else becomes a string. Values that fail coercion are *skipped*, not rejected — a malformed optional field should not block a save.
+**Stage 2 — `normalize_manual_fields`, at the type boundary.** User input arrives as strings. This function coerces by field class: `INTEGER_FIELDS` (currently just `billing_days`) go through `int(float(value))`; `NUMERIC_FIELDS` (17 of them) go through `float(value)`; `bill_month` goes through `normalize_month_value`; everything else becomes a string. Values that fail coercion are *skipped*, not rejected — a malformed optional field should not block a save.
 
 **Stage 3 — `validate_fields`, at the domain boundary.** This is where business rules live:
 

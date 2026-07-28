@@ -35,7 +35,7 @@ Why an electricity bill tells you the outcome and nothing about the cause, and w
 ### [Part 2 — Designing a Production-Ready FastAPI Backend](./part-2-fastapi-backend.md)
 *Layering, contracts, auth and scalability · 17 min*
 
-Why 31 small service modules and one large `main.py` is the right shape when the complexity lives in the domain — and where that choice starts to hurt. Covers the layering model, the full route table, three-stage validation, JWT verification with a network fallback, composition roots, the complete save-request lifecycle, the dependency injection that *should* have been used, configuration, error handling, testing and the bottlenecks in order.
+Why 35 small service modules and one large `main.py` is the right shape when the complexity lives in the domain — and where that choice starts to hurt. Covers the layering model, the full route table, three-stage validation, JWT verification with a network fallback, composition roots, the complete save-request lifecycle, the dependency injection that *should* have been used, configuration, error handling, testing and the bottlenecks in order.
 
 **Key ideas:** pure functions over dicts · named degradation modes · determinism as a requirement · a failed enhancement is not a failed request
 
@@ -124,7 +124,7 @@ Mermaid diagrams for every major subsystem. Each file contains diagrams only.
 | Data | Supabase — PostgreSQL with row-level security, Auth, Storage |
 | Deployment | Vercel (frontend) + a Python host with system Tesseract (backend) |
 
-**Scale of the codebase:** ~5,200 lines of Python across `main.py` and 31 service modules, ~3,100 lines of TypeScript components plus ~5,200 lines of page code, 4 database tables, 15 API endpoints, 8 backend test files.
+**Scale of the codebase:** ~5,200 lines of Python across `main.py` and 35 service modules, ~3,100 lines of TypeScript components plus ~5,200 lines of page code, 4 database tables, 15 API endpoints, 8 backend test files.
 
 ---
 

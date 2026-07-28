@@ -232,10 +232,10 @@ graph TB
   end
 
   subgraph FastAPI
-    ROUTES["main.py — 14 routes"]
+    ROUTES["main.py — 15 routes"]
     OCRP["OCR pipeline"]
     PARSER["parser.py"]
-    SERVICES["31 intelligence service modules"]
+    SERVICES["35 intelligence service modules"]
   end
 
   subgraph Supabase
@@ -409,9 +409,9 @@ The `bills` table keeps `parsed_data` (what the parser produced), `corrected_dat
 
 Nothing is ever overwritten. When `PARSER_VERSION` moves from `phase4.v2` to something newer, every historical row can be re-parsed from its stored raw text and diffed against its stored corrections. That is the difference between a parser you can improve and a parser you are stuck with.
 
-### 3. The service layer is 31 single-purpose modules
+### 3. The service layer is 35 single-purpose modules
 
-The backend has one `main.py` and thirty-one service modules, most under 100 lines. `budget_risk_analyzer.py` is 32 lines and does exactly one thing. `seasonal_influence_service.py` is a 30-line lookup table with an accessor.
+The backend has one `main.py` and thirty-five service modules, most under 100 lines. `budget_risk_analyzer.py` is 32 lines and does exactly one thing. `seasonal_influence_service.py` is a 30-line lookup table with an accessor.
 
 The composition graph is strictly acyclic: `seasonal_engine` → `season_detection` + `seasonal_behavior` + `seasonal_insights` + `seasonal_trends`; `behavioral_estimation_engine` → `estimation_calculation_service` + `household_behavior_utility` + the seasonal modules; `recommendation_engine` → six generators; `prediction_engine` → five forecasting services. Every module is independently testable with plain dictionaries, which is exactly how the eight test files exercise them.
 
@@ -469,7 +469,7 @@ graph TD
 
 **The backend runs as service role and therefore bypasses RLS.** This is the security decision that deserves the most scrutiny. FastAPI holds `SUPABASE_SERVICE_ROLE_KEY` and can read any row in the database. The only thing preventing cross-tenant access is that every single query appends `.eq("user_id", user_id)` with the id extracted from a verified token. One omitted filter in one new endpoint would be a data breach.
 
-The mitigation today is discipline and a small surface (14 routes). The mitigation it deserves is a repository layer that takes `user_id` as a mandatory constructor argument and makes an unscoped query impossible to write. That is the top security item on the roadmap.
+The mitigation today is discipline and a small surface (15 routes). The mitigation it deserves is a repository layer that takes `user_id` as a mandatory constructor argument and makes an unscoped query impossible to write. That is the top security item on the roadmap.
 
 **Token verification has a fast path and a safe path.** `get_user_id` first attempts a local HS256 decode with `SUPABASE_JWT_SECRET` (with `verify_aud` disabled, since Supabase audience claims vary by flow). On any `PyJWTError`, or if the secret is unset, it falls back to a network call to `supabase.auth.get_user(token)`. Fast in the common case, correct in the uncommon one.
 
