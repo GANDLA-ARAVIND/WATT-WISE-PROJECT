@@ -1,14 +1,14 @@
 # OCR Is Easy Until You Try It on Real Electricity Bills
 
-### The engineering challenges behind turning noisy utility bills into structured, trustworthy data
+**Engineering Journal #3 — Building WattWise**
 
----
+*The engineering challenges behind turning noisy utility bills into structured, trustworthy data.*
 
-In the last article I said extracting reliable data from an electricity bill was harder than building the backend around it. This is that story, answering one question:
+In the previous article I said extracting reliable data from an electricity bill was harder than building the backend around it. This is that story, and it answers one question:
 
-**why is getting trustworthy information out of a utility bill so much harder than just running OCR?**
+**Why is getting trustworthy information out of a utility bill so much harder than just running OCR?**
 
----
+If you have ever shipped document extraction and watched it work beautifully on your test files and fall apart on real user uploads, the failure modes below will be familiar. The interesting part is not the extraction. It is everything you have to build around it before you can believe the output.
 
 ## The myth about OCR
 
@@ -16,34 +16,31 @@ Every OCR demo uses a clean, flat, well-lit document. You pass it in, you get te
 
 Real electricity bills arrive as a photograph taken at an angle, at night, under a ceiling light, of a thermal-printed page folded into a wallet. Sometimes as a PDF that is really just a scan wearing a PDF costume.
 
-Here is what a real pass over one produced: "Blll Amount 2340". "Unlts Consmed 318". "Biling nays 30". "Recorded HD 1.9". "GIS Subsidy 0".
+Here is what a real pass over one produced:
 
-Every one of those lines is wrong. Every one is also recoverable, and that gap is where the engineering lives.
+- "Blll Amount 2340"
+- "Unlts Consmed 318"
+- "Biling nays 30"
+- "Recorded HD 1.9"
+- "GIS Subsidy 0"
 
-These are not random errors. They are the systematic confusions of one engine on one class of document: an `i` becomes an `l`, an `M` becomes an `H`, a `J` becomes an `I`, the `D` in "Days" disappears. Once you accept the corruption is patterned, you can design for the pattern instead of hoping for clean input.
+Every one of those lines is wrong. Every one is also recoverable, and *that gap is where the engineering lives.*
 
----
+These are not random errors. They are the systematic confusions of one engine on one class of document: an **i** becomes an **l**, an **M** becomes an **H**, a **J** becomes an **I**, the **D** in "Days" disappears entirely.
+
+**Once you accept the corruption is patterned, you can design for the pattern instead of hoping for clean input.**
 
 ## What actually happens
 
-```mermaid
-flowchart LR
-  Upload --> Preprocess
-  Preprocess --> OCR
-  OCR --> Parse
-  Parse --> Confidence
-  Confidence --> Validation
-  Validation --> ManualReview
-  ManualReview --> Stored
-```
-
-Seven steps, and only one is what most people mean by "OCR."
+The pipeline has seven stages: upload, preprocess, OCR, parse, confidence scoring, validation, manual review — and only then storage. Only one of those is what most people mean by "OCR."
 
 Before any text extraction, the image is reoriented from its own metadata, upscaled if small, pushed for contrast and sharpness, denoised, binarised, and deskewed by fitting a rotated rectangle around the dark pixels and rotating it flat.
 
-Each answers a specific failure. Reorientation fixes the most common total failure: a portrait photo taken with the phone rotated arrives sideways and OCR returns nothing at all. Binarising against a threshold computed per pixel, from its own neighbourhood rather than one cutoff for the page, fixes the second — a photographed bill is never evenly lit, and one global cutoff either blows out the bright patch under the lamp or loses the shadow at the fold.
+Each of those answers a specific failure.
 
----
+Reorientation fixes the most common total failure: a portrait photo taken with the phone rotated arrives sideways and OCR returns nothing at all.
+
+Binarising against a threshold computed per pixel — from its own neighbourhood rather than one cutoff for the whole page — fixes the second. A photographed bill is never evenly lit, and one global cutoff either blows out the bright patch under the lamp or loses the shadow at the fold.
 
 ## Why OCR alone isn't enough
 
@@ -55,13 +52,11 @@ Even then the output is a wall of noisy lines. Turning it into nineteen structur
 
 **Approximate matching second** — where I got burned. Fuzzy matching fixed the corruption problem instantly and created a false-positive problem just as fast. "Interest on ED" and "Interest on CD" are different charges differing by a single character, and any threshold loose enough to catch real OCR damage is loose enough to confuse them permanently.
 
-The fix was not a better threshold. It was a hard gate: a line must contain a discriminating token before fuzzy matching is attempted at all. Fuzzy matching needs a gate, not just a score.
+The fix was not a better threshold. It was a hard gate: a line must contain a discriminating token before fuzzy matching is attempted at all. **Fuzzy matching needs a gate, not just a score.**
 
 **Content heuristics last**, for fields recognisable without a label. Meter readings came with a trap: "Meter No: 4471028" and "Meter Reading: 15820" both contain "meter" and a long number. Without an explicit exclusion, the meter *serial number* gets stored as a meter *reading* — a wrong value that looks plausible and nobody would ever question.
 
-That is the real lesson of this layer. The dangerous OCR failure is not the garbled one — it is the confidently wrong one.
-
----
+*That is the real lesson of this layer. The dangerous OCR failure is not the garbled one — it is the confidently wrong one.*
 
 ## Making data trustworthy
 
@@ -71,23 +66,23 @@ There is a second, independent signal. I run the engine twice per page — once 
 
 That is the system admitting it does not trust itself. A cleanly matched field still gets flagged, because a page the engine barely read may have produced a confidently wrong number. Trusting per-field scores on a document that came through as mush produces silent corruption — far worse than asking someone to glance at six values.
 
-Then domain validation runs, catching what no type check can. Billing days must fall between 1 and 60. Consumption above ten thousand units is not a domestic connection. Three fields are mandatory, fourteen must be non-negative, and three may be negative because adjustments and credits go both ways.
+Then domain validation runs, catching what no type check can:
+
+- Billing days must fall between 1 and 60.
+- Consumption above ten thousand units is not a domestic connection.
+- Three fields are mandatory, fourteen must be non-negative, and three may legitimately be negative because adjustments and credits go both ways on a real bill.
 
 None of those are format checks. They exist for one failure mode: **the right number landing in the wrong field.** A meter reading of 15,820 is a valid non-negative integer — obviously wrong only once it sits in a field that should never exceed 60.
 
----
-
 ## Why manual review exists
 
-Because no parser gets utility bills right every time, and pretending otherwise pushes the failure onto the user.
+Because no parser gets utility bills right every time, and *pretending otherwise pushes the failure onto the user.*
 
 So correction is a first-class path, not a fallback. Uncertain fields are highlighted, and each can show its confidence, how it was matched, and the raw line behind it — someone who doubts a number sees the text it came from.
 
-Editing a field fires a short-debounced silent re-parse that merges human values over machine ones. The corrected field is marked human-confirmed at full confidence and its warning disappears. Watching uncertainty markers clear as you type makes this feel like verification, not data entry.
+Editing a field fires a short-debounced silent re-parse that merges human values over machine ones. The corrected field is marked human-confirmed at full confidence and its warning disappears. *Watching uncertainty markers clear as you type makes this feel like verification, not data entry.*
 
-The bill is then stored with an explicit status — verified, or needs review — alongside both what the machine read and what the human confirmed. The machine's output is never overwritten, and that is the most valuable detail: the record of which fields humans fix most often becomes a live list of what the parser gets wrong.
-
----
+The bill is then stored with an explicit status — verified, or needs review — alongside both what the machine read and what the human confirmed. The machine's output is never overwritten, and that is the most valuable detail: **the record of which fields humans fix most often becomes a live list of what the parser gets wrong.**
 
 ## Trade-offs
 
@@ -97,12 +92,14 @@ The bill is then stored with an explicit status — verified, or needs review �
 
 **Corrupted spellings are configuration.** "Blll amount" and "unlts consmed" are literally entries in my matching lists. Unglamorous — and it beats any general-purpose spell-correction pass, because it targets failures I observed rather than ones I imagined.
 
----
+## Closing Thoughts
 
-## Closing thoughts
-
-OCR was never the hard part. Deciding what to believe was.
+OCR was never the hard part. **Deciding what to believe was.**
 
 Everything above — the scoring ladder, the token gate, the confidence floor, the range checks, the review status — exists to answer one question for every field: *how much should we trust this number?*
 
-OCR turned out to be only the beginning. Once reliable data reached the database, the next challenge became maintaining a growing analytical system without making it harder to evolve — the story I'll cover in the final article of this series.
+The habit I took from this is to stop treating extraction as a boolean. A parser that returns values is easy. A parser that returns values *and its own opinion of them* is what makes the data safe to build on, and that opinion has to survive all the way into storage or it may as well not exist.
+
+OCR turned out to be only the beginning. Once reliable data reached the database, the next challenge became maintaining a growing analytical system without making it harder to evolve — the story I cover in the final article of this series.
+
+If you have built extraction pipelines, I would like to know how you handled the confidently-wrong case: did you surface uncertainty to the user, or absorb it silently and hope the numbers held?
